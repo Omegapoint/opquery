@@ -70,7 +70,12 @@
 function createHtml(html) {
   var el = document.createElement('div');
   el.innerHTML = html;
-  return el.children[0];
+  var c = el.children[0];
+  if(Array.isArray(c)) {
+    return c;
+  } else {
+    return [c];
+  }
 }
 
   var opQuery = function opQuery(selectorOrNodes, context) {

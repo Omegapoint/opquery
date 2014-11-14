@@ -69,6 +69,7 @@ test("type", function() {
 	equal( jQuery.type(new RegExp("asdf")), "regexp", "RegExp" );
 	equal( jQuery.type([1]), "array", "Array" );
 	equal( jQuery.type(new Date()), "date", "Date" );
+	equal( jQuery.type(new Function("return;")), "function", "Function" );
 	equal( jQuery.type(function(){}), "function", "Function" );
 	equal( jQuery.type(new Error()), "error", "Error" );
 	equal( jQuery.type(window), "object", "Window" );

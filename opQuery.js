@@ -35,7 +35,6 @@
     o.length = nodes.length;
     o.each = function each(fn) {
       _forEach(nodes, fn);
-      return this;
     };
     o.map = function map(fn) {
       return _map(nodes, fn);
@@ -43,18 +42,29 @@
     o.filter = function filter(fn) {
       return _filter(nodes, fn);
     };
+
+    o.debug = function() {
+      o.each(function() {
+          console.log(this);
+      });
+    }
     return o;
   };
 
   function findNodes(root, selectors) {
-    return flatten(selectors.split(',').forEach(function(selector) {
-      return root.querySelectorAll(selector);
+    return flatten(selectors.split(',').map(function(selector) {
+      return root.querySelectorAll(selectors);
     }));
   }
 
   function flatten(arr) {
     var merged = [];
-    return merged.concat.apply(merged, arr);
+    for(var i = 0; i < arr.length; i++) {
+      for(var j = 0; j < arr[i].length; j++) {
+        merged.push(arr[i][j]);
+      }
+    }
+    return merged;
   }
 
 function createHtml(html) {
@@ -74,12 +84,6 @@ function createHtml(html) {
           return findNodes(el, selectorOrNodes); //el.querySelectorAll(selectorOrNodes);
         });
         var merged = flatten(nodes);
-       // var merged = [];
-       // for(var i = 0; i < nodes.length; i++) {
-       //   for(var j = 0; j < nodes[i].length; j++) {
-       //     merged.push(nodes[i][j]);
-       //   }
-       // }
         return newQuery(merged);
       } else {
         return opQuery(findNodes(document, selectorOrNodes)); //document.querySelectorAll(selectorOrNodes));

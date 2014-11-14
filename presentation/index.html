@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+
+<title>opQuery - Vårt egna jQuery</title>
+
+<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+<meta name="author" content="Hakim El Hattab">
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link rel="stylesheet" href="css/reveal.min.css">
+<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+
+<!-- For syntax highlighting -->
+<link rel="stylesheet" href="lib/css/zenburn.css">
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+if( window.location.search.match( /print-pdf/gi ) ) {
+  var link = document.createElement( 'link' );
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = 'css/print/pdf.css';
+  document.getElementsByTagName( 'head' )[0].appendChild( link );
+}
+</script>
+
+<!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div class="reveal">
+
+  <!-- Any section element inside of this container is displayed as a slide -->
+  <div class="slides">
+    <section>
+      <h1>opQuery</h1>
+      <h3>Bygga vårt egna jQuery</h3>
+
+      <br /><br />
+      <p>
+      Magnus Landerblom (fd. G Andersson)<br />
+      Webteamet<br />
+      magnus.g.andersson@omegapoint.se
+      </p>
+
+      <aside class="notes">
+      Varför är det bra
+      Varför är det dåligt
+      Implementations bitar, hur ser jQuery ut på insidan
+
+      Bygga vår egen opQuery
+      Struktur...
+      Tests
+      </aside>
+
+    </section>
+
+    <section data-markdown>
+      ## Varför?
+
+      http://youmightnotneedjquery.com
+
+    </section>
+
+    <section data-markdown>
+      ## Agenda
+
+      * jQuery, vad är det och hur fungerar det
+      * Hur kan vi bygga vår egen version
+      * Bygga opQuery, vår egen version av jQuery
+
+    </section>
+    <section>
+      <h2>jQuery</h2>
+      <ul>
+        <li>Används för DOM Manipulering, events och ajax</li>
+        <li>Troligen det mest kända JavaScript biblioteket</li>
+        <li>Vältestat och välanvänt</li>
+        <li>Många plugins</li>
+        <li>Fungerar i alla webbläsare</li>
+      </ul>
+
+      <aside class="notes">
+        Med alla webbläsare menas: <br />
+        IE: jQuery 1.x	6+, jQuery 2.x	9+<br />
+        Chrome: Current-1<br />
+        Firefox: Current-1<br />
+        Safari: 5.1+<br />
+        iOS: 6.1+<br />
+        Android: 2.3, 4.0+<br />
+      </aside>
+    </section>
+
+    <section>
+    <section data-markdown>
+      <script type="text/template">
+        ## jQuery Exempel
+
+        ```javascript
+
+        $('.delete-button').click(function() {
+          $(this)
+            .closest('.article')
+            .addClass('is-read');
+        });
+
+        ```
+      </script>
+    </section>
+    <section data-markdown>
+      ## Native
+
+      ```javascript
+      function findPartentWithClassName(el, className) {
+        // go up one parent the check if it has the class className
+        // approx 8 lines of code
+      }
+      function addClass(el, classname) {
+        // Check if el has classname, if not add it
+        // approx 5 lines of code
+      }
+      var elements = document.getElementsByClassname('delete-button');
+      for(var i = 0; i < elements.length; i++) {
+        var el = elements[i];
+        el.addEventListener("click", function() {
+          var parent = findPartentWithClassName(el, 'article');
+          addClass(parent, 'is-read');
+        }, false);
+      }
+      ```
+
+    </section>
+    </section>
+
+    <section>
+    <section data-markdown>
+      ## Varför inte jQuery?
+
+      > "Jag behöver lägga till en css klass på ett element när användaren klickar på det
+      > jag använder jQuery så fixar det sig".
+
+    </section>
+    <section data-markdown>
+      ## Varför inte jQuery?
+
+      * Förstår inte vad som händer i bakgrunden
+      * Använder långsamma selektorer
+      * Sätter nya css regler flera gånger om
+      * Risk att man försöker lösa allting med jQuery
+
+    </section>
+    <section data-markdown>
+      ## Varför inte jQuery?
+
+      jQuery kanske inte behövs om man använder nya ramverk så som
+
+      * AngularJS
+      * EmberJS
+      * ReactJs
+      * osv..
+
+    </section>
+    <section data-markdown>
+      ## Varför inte jQuery?
+
+      Någon kan missta vad du syftar på
+
+      http://en.wikipedia.org/wiki/Jake_Weary
+
+    </section>
+    </section>
+
+    <section>
+    <section data-markdown>
+      ## Hur fungerar jQuery
+
+      ```javascript
+      $('.delete-button')
+        .click(function() {});
+      ```
+    </section>
+
+    <section>
+      <pre><code class="javascript" data-trim contenteditable>
+
+      $([&lt;div class="delete-button" /&gt;,&lt;div class="delete-button" /&gt;])
+        .click(function() {});
+
+      </code></pre>
+    </section>
+    <section>
+      <pre><code class="javascript" data-trim contenteditable>
+
+jQuery.fn.click = function(callback) {
+  return this.each(function(element) {
+    element.addEventlistener('click', callback, false);
+  });
+};
+
+      </code></pre>
+    </section>
+    <section>
+      <pre><code class="javascript" data-trim contenteditable>
+[&lt;div class="delete-button" /&gt;,&lt;div class="delete-button" /&gt;]
+  .each(function(element) {
+    element.addEventlistener('click', callback, false);
+  });
+
+      </code></pre>
+    </section>
+    </section>
+
+    <section>
+      <section data-markdown>
+        ## Hur fungerar jQuery plugins
+
+        ```javascript
+        $('.some-class').myPlugin(someOptionsAsAnObject);
+        ```
+      </section>
+      <section data-markdown>
+        ```javascript
+
+        $.fn.myPlugin = function(options) {
+
+        };
+
+        ```
+      </section>
+      <section data-markdown>
+        ```javascript
+
+        $.fn.myPlugin = function(options) {
+
+          // this är jQuery instansen med vår selector '.some-class'
+          return this.each(function() {
+
+          };
+
+        };
+
+        ```
+      </section>
+      <section data-markdown>
+        ```javascript
+
+        $.fn.myPlugin = function(options) {
+
+          // this är jQuery instansen med vår selector '.some-class'
+          return this.each(function() {
+            // this är det råa DOM Elementet
+            var element = this;
+            // $element är DOM elementet wrappat i jQuery
+            var $element = $(this);
+
+            if($element.hasClass('change-font-color')) {
+              $element.css('color', options.color);
+            }
+          };
+        };
+
+        ```
+      </section>
+
+      <section>
+      <pre><code class="html" data-trim contenteditable>
+<div class="myPlugin change-font-color">
+  Some random text
+</div>
+      </code></pre>
+
+
+      <pre><code class="javascript" data-trim contenteditable>
+
+$('.myPlugin').myPlugin({
+  color: 'purple'
+});
+
+      </code></pre>
+
+
+        <div style="color: purple">Some random text</div>
+
+      </section>
+    </section>
+
+    <section data-markdown>
+      ## opQuery
+
+      * CSS Selector till DOMnoder funktionalitet är på plats.
+      * 641 enhetstester från den riktiga jQuery koden, varav 176 är gröna nu.
+      * Tomma funktioner som vi ska implementera
+    </section>
+
+    <section>
+      <h2>Selektorer</h2>
+
+      <ul>
+        <li>Stödjs av samtliga moderna webbläsare</li>
+        <li>Inte riktigt samma support som jQuery, men tillräkligt för denna labb</li>
+      </ul>
+      Leta i hela documentet
+      <pre><code class="javascript" data-trim contenteditable>
+document.querySelectorAll(string);
+      </code></pre>
+      Leta enbart under ett viss element
+      <pre><code class="javascript" data-trim contenteditable>
+domNode.querySelectorAll(string);
+      </code></pre>
+    </section>
+    <section>
+    <section data-markdown>
+      ### Testning
+
+      Sker med QUnit då detta är det jQuery använder
+
+      Dokumentation finns här: http://api.qunitjs.com
+
+      eller bara googla efter qunit
+
+    </section>
+    <section>
+      <pre><code class="javascript" data-trim contenteditable>
+
+module('op')
+
+QUnit.test('opQuery html()', function( assert ) {
+
+  var expected = '';
+  var actual = opQuery('.testDiv').html()[0];
+
+  assert.equal(actual, expected, 'Passed!');
+
+});
+      </code></pre>
+    </section>
+    </section>
+    <section>
+    <section data-markdown>
+      ### Nu kodar vi!
+
+      Koden finns här: https://www.github.com/omegapoint/opquery.git
+
+    </section>
+    <section data-markdown>
+      Under ```lib/``` finns alla funktioner, en funktion per fil
+
+      Under ```tests/``` finns alla tester, kopierade direkt från jQuerys repository
+
+      ```opQuery.js``` innehåller själva selektorhanteringen om ni vill kolla
+
+      Öppna index.html i din webbläsare för att köra testerna
+    </section>
+    </section>
+
+  </div>
+
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.min.js"></script>
+
+<script>
+
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+controls: true,
+progress: true,
+history: true,
+center: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+// Parallax scrolling
+// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+// parallaxBackgroundSize: '2100px 900px',
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+]
+});
+
+</script>
+
+</body>
+</html>
